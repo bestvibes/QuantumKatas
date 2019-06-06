@@ -34,6 +34,7 @@ StyleCop.Cache
 *.sublime-workspace
 build_log.txt
 .DS_store
+.bash_history
 
 # Q# code-behind files:
 *.g.cs

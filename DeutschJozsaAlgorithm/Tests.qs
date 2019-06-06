@@ -9,6 +9,7 @@
 
 namespace Quantum.Kata.DeutschJozsaAlgorithm {
     
+    open Microsoft.Quantum.Arrays;
     open Microsoft.Quantum.Convert;
     open Microsoft.Quantum.Diagnostics;
 
@@ -267,48 +268,4 @@ namespace Quantum.Kata.DeutschJozsaAlgorithm {
         AssertDJAlgorithmWorks(3, Oracle_MajorityFunction_Reference, 
                                false, "f(x) = majority function not identified as balanced");
     }
-    
-    
-    // ------------------------------------------------------
-    operation AssertNonameAlgorithmWorks (r : Int[]) : Unit {
-        
-        let givenOracle = Oracle_ProductWithNegationFunction_Reference(_, _, r);
-        let res = Noname_Algorithm(Length(r), givenOracle);
-        
-        // check that the oracle was called once (later it will be called again by test harness)
-        let nu = GetOracleCallsCount(givenOracle);
-        EqualityFactB(nu <= 1, true, $"You are allowed to call the oracle at most once, and you called it {nu} times");
-        
-        // check that the oracle obtained from r
-        // is equivalent to the oracle obtained from return value
-        EqualityFactI(Length(res), Length(r), "Returned bit vector must have the same length as the oracle input.");
-        let resOracle = Oracle_ProductWithNegationFunction_Reference(_, _, res);
-        AssertTwoOraclesAreEqual(Length(r) .. Length(r), givenOracle, resOracle);
-    }
-    
-    
-    operation AssertNonameAlgorithmWorksOnInt (n : Int, bits : Int) : Unit {
-        let r = IntArrFromPositiveInt(n, bits);
-        AssertNonameAlgorithmWorks(r);
-    }
-    
-    
-    operation T41_Noname_Algorithm_Test () : Unit {
-        
-        ResetOracleCallsCount();
-        
-        // apply the algorithm to reference oracles and check that the output is as expected
-        // test all bit vectors of length 1..4
-        for (bits in 1 .. 4) {
-            
-            for (n in 0 .. 2 ^ bits - 1) {
-                AssertNonameAlgorithmWorksOnInt(n, bits);
-            }
-        }
-        
-        // and a couple of random ones
-        AssertNonameAlgorithmWorks([1, 1, 1, 0, 0]);
-        AssertNonameAlgorithmWorks([1, 0, 1, 0, 1, 0]);
-    }
 }
-
