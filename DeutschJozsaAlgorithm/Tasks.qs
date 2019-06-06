@@ -131,7 +131,7 @@ namespace Quantum.Kata.DeutschJozsaAlgorithm {
     
     operation BV_Algorithm (N : Int, Uf : ((Qubit[], Qubit) => Unit)) : Int[] {
         using ((x, y) = (Qubit[N], Qubit())) {
-            BV_StatePrep_Reference(x, y);
+            BV_StatePrep(x, y);
             
             Uf(x, y);
             
@@ -153,7 +153,7 @@ namespace Quantum.Kata.DeutschJozsaAlgorithm {
     operation DJ_Algorithm (N : Int, Uf : ((Qubit[], Qubit) => Unit)) : Bool {
         mutable isConstantFunction = true;
         
-        let r = BV_Algorithm_Reference(N, Uf);
+        let r = BV_Algorithm(N, Uf);
         
         for (i in 0 .. N - 1) {
             set isConstantFunction = isConstantFunction and r[i] == 0;
