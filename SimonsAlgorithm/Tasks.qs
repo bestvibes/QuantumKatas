@@ -31,8 +31,13 @@ namespace Quantum.Kata.SimonsAlgorithm {
     //      2) a qubit in an arbitrary state |y⟩
     // Goal: Transform state |x, y⟩ into |x, y ⊕ x_0 ⊕ x_1 ... ⊕ x_{n-1}⟩ (⊕ is addition modulo 2).
     operation Oracle_CountBits (x : Qubit[], y : Qubit) : Unit
-    is Adj {        
-        // ...
+    is Adj {   
+
+        let N = Length(x);
+
+        for (i in 0 .. N - 1) {
+            CNOT(x[i], y);
+        }
     }
     
     
@@ -44,7 +49,12 @@ namespace Quantum.Kata.SimonsAlgorithm {
     // |y ⊕ f(x)⟩ = |y_0, y_1 ⊕ x_0, y_2 ⊕ x_1, ..., y_{n-1} ⊕ x_{n-2}⟩ (⊕ is addition modulo 2).
     operation Oracle_BitwiseRightShift (x : Qubit[], y : Qubit[]) : Unit
     is Adj {        
-        // ...
+    
+        let N = Length(x);
+
+        for (i in 1 .. N - 1) {
+            CNOT(x[i - 1], y[i]);
+        }
     }
     
     
@@ -62,7 +72,13 @@ namespace Quantum.Kata.SimonsAlgorithm {
         // You don't need to modify it. Feel free to remove it, this won't cause your code to fail.
         EqualityFactI(Length(x), Length(A), "Arrays x and A should have the same length");
             
-        // ...
+        let N = Length(x);
+            
+        for (i in 0 .. N - 1) {
+            if (A[i] == 1) {
+                CNOT(x[i], y);
+            }
+        }
     }
     
     
@@ -84,7 +100,16 @@ namespace Quantum.Kata.SimonsAlgorithm {
         EqualityFactI(Length(x), Length(A[0]), "Arrays x and A[0] should have the same length");
         EqualityFactI(Length(y), Length(A), "Arrays y and A should have the same length");
             
-        // ...
+        let N1 = Length(y);
+        let N2 = Length(x);
+            
+        for (i in 0 .. N1 - 1) {
+            for (j in 0 .. N2 - 1) {
+                if ((A[i])[j] == 1) {
+                    CNOT(x[j], y[i]);
+                }
+            }
+        }
     }
     
     
@@ -99,7 +124,7 @@ namespace Quantum.Kata.SimonsAlgorithm {
     // (i.e. the state (|0...0⟩ + ... + |1...1⟩) / sqrt(2^N)).
     operation SA_StatePrep (query : Qubit[]) : Unit
     is Adj {        
-        // ...
+        ApplyToEachA(H, query);
     }
     
     
@@ -125,13 +150,31 @@ namespace Quantum.Kata.SimonsAlgorithm {
     // part is already implemented, so once you implement the quantum part, the tests will pass.
     operation Simon_Algorithm (N : Int, Uf : ((Qubit[], Qubit[]) => Unit)) : Int[] {
         
-        // Declare an Int array in which the result will be stored;
-        // the variable has to be mutable to allow updating it.
-        mutable b = new Int[N];
-        
-        // ...
-
-        return b;
+        // allocate input and answer registers with N qubits each
+        using ((x, y) = (Qubit[N], Qubit[N])) {
+            // prepare qubits in the right state
+            SA_StatePrep_Reference(x);
+            
+            // apply oracle
+            Uf(x, y);
+            
+            // apply Hadamard to each qubit of the input register
+            ApplyToEach(H, x);
+            
+            // measure all qubits of the input register;
+            // the result of each measurement is converted to an Int
+            mutable j = new Int[N];
+            for (i in 0 .. N - 1) {
+                if (M(x[i]) == One) {
+                    set j w/= i <- 1;
+                }
+            }
+            
+            // before releasing the qubits make sure they are all in |0⟩ states
+            ResetAll(x);
+            ResetAll(y);
+            return j;
+        }
     }
     
 }

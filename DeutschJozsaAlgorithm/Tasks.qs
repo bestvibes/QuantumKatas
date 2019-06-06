@@ -57,8 +57,7 @@ namespace Quantum.Kata.DeutschJozsaAlgorithm {
     operation Oracle_One (x : Qubit[], y : Qubit) : Unit {
         // Since f(x) = 1 for all values of x, |y ⊕ f(x)⟩ = |y ⊕ 1⟩ = |NOT y⟩.
         // This means that the operation needs to flip qubit y (i.e. transform |0⟩ to |1⟩ and vice versa).
-
-        // ...
+        X(y);
     }
     
     
@@ -72,8 +71,7 @@ namespace Quantum.Kata.DeutschJozsaAlgorithm {
         // The following line enforces the constraints on the value of k that you are given.
         // You don't need to modify it. Feel free to remove it, this won't cause your code to fail.
         EqualityFactB(0 <= k and k < Length(x), true, "k should be between 0 and N-1, inclusive");
-
-        // ...
+        CNOT(x[k], y);
     }
     
     
@@ -84,8 +82,11 @@ namespace Quantum.Kata.DeutschJozsaAlgorithm {
     // Goal: transform state |x, y⟩ into state |x, y ⊕ f(x)⟩ (⊕ is addition modulo 2).
     operation Oracle_OddNumberOfOnes (x : Qubit[], y : Qubit) : Unit {
         // Hint: f(x) can be represented as x_0 ⊕ x_1 ⊕ ... ⊕ x_(N-1)
-
-        // ...
+        ApplyToEachA(CNOT(_, y), x);
+        // Alternative:
+        // for (q in x) {
+        //     CNOT(q, y);
+        // }
     }
     
     
@@ -103,7 +104,11 @@ namespace Quantum.Kata.DeutschJozsaAlgorithm {
         // You don't need to modify it. Feel free to remove it, this won't cause your code to fail.
         EqualityFactI(Length(x), Length(r), "Arrays should have the same length");
 
-        // ...
+        for (i in IndexRange(x)) {
+            if (r[i] == 1) {
+                CNOT(x[i], y);
+            }
+        }
     }
     
     
@@ -119,7 +124,16 @@ namespace Quantum.Kata.DeutschJozsaAlgorithm {
         // You don't need to modify it. Feel free to remove it, this won't cause your code to fail.
         EqualityFactI(Length(x), Length(r), "Arrays should have the same length");
 
-        // ...
+        for (i in IndexRange(x)) {
+            if (r[i] == 1) {
+                CNOT(x[i], y);
+            } else {
+                // do a 0-controlled NOT
+                X(x[i]);
+                CNOT(x[i], y);
+                X(x[i]);
+            }
+        }
     }
     
     
@@ -139,13 +153,28 @@ namespace Quantum.Kata.DeutschJozsaAlgorithm {
         EqualityFactB(1 <= P and P <= Length(x), true, "P should be between 1 and N, inclusive");
 
         // Hint: the first part of the function is the same as in task 1.4
-
-        // ...
-
-        // Hint: you can use Controlled functor to perform multicontrolled gates
-        // (gates with multiple control qubits).
-
-        // ...
+        for (q in x) {
+            CNOT(q, y);
+        }
+            
+        // add check for prefix as a multicontrolled NOT
+        // true bits of r correspond to 1-controls, false bits - to 0-controls
+        for (i in 0 .. P - 1) {
+                
+            if (prefix[i] == 0) {
+                X(x[i]);
+            }
+        }
+            
+        Controlled X(x[0 .. P - 1], y);
+            
+        // uncompute changes done to input register
+        for (i in 0 .. P - 1) {
+                
+            if (prefix[i] == 0) {
+                X(x[i]);
+            }
+        }
     }
     
     
@@ -159,9 +188,11 @@ namespace Quantum.Kata.DeutschJozsaAlgorithm {
         // You don't need to modify it. Feel free to remove it, this won't cause your code to fail.
         EqualityFactB(3 == Length(x), true, "x should have exactly 3 qubits");
 
-        // Hint: represent f(x) in terms of AND and ⊕ operations
-
-        // ...
+        // f(x) can be represented in terms of AND and ⊕ operations as follows:
+        // f(x) = (x₀ AND x₁) ⊕ (x₀ AND x₂) ⊕ (x₁ AND x₂)
+        CCNOT(x[0], x[1], y);
+        CCNOT(x[0], x[2], y);
+        CCNOT(x[1], x[2], y);
     }
     
     
@@ -179,7 +210,9 @@ namespace Quantum.Kata.DeutschJozsaAlgorithm {
     //      2) create |-⟩ state (|-⟩ = (|0⟩ - |1⟩) / sqrt(2)) on answer register
     operation BV_StatePrep (query : Qubit[], answer : Qubit) : Unit
     is Adj {
-            // ...
+        ApplyToEachA(H, query);
+        X(answer);
+        H(answer);
     }
     
     
@@ -199,13 +232,32 @@ namespace Quantum.Kata.DeutschJozsaAlgorithm {
     // Quantum computing allows to perform this task in just one call to the oracle; try to implement this algorithm.
     operation BV_Algorithm (N : Int, Uf : ((Qubit[], Qubit) => Unit)) : Int[] {
         
-        // Declare an Int array in which the result will be stored;
-        // the variable has to be mutable to allow updating it.
-        mutable r = new Int[N];
-        
-        // ...
-
-        return r;
+        // allocate N qubits for input register and 1 qubit for output
+        using ((x, y) = (Qubit[N], Qubit())) {
+            
+            // prepare qubits in the right state
+            BV_StatePrep_Reference(x, y);
+            
+            // apply oracle
+            Uf(x, y);
+            
+            // apply Hadamard to each qubit of the input register
+            ApplyToEach(H, x);
+            
+            // measure all qubits of the input register;
+            // the result of each measurement is converted to an Int
+            mutable r = new Int[N];
+            for (i in 0 .. N - 1) {
+                if (M(x[i]) != Zero) {
+                    set r w/= i <- 1;
+                }
+            }
+            
+            // before releasing the qubits make sure they are all in |0⟩ state
+            ResetAll(x);
+            Reset(y);
+            return r;
+        }
     }
     
     
@@ -253,17 +305,21 @@ namespace Quantum.Kata.DeutschJozsaAlgorithm {
     // Quantum computing allows to perform this task in just one call to the oracle; try to implement this algorithm.
     operation DJ_Algorithm (N : Int, Uf : ((Qubit[], Qubit) => Unit)) : Bool {
         
-        // Declare Bool variable in which the result will be accumulated;
+        // Declare variable in which the result will be accumulated;
         // this variable has to be mutable to allow updating it.
         mutable isConstantFunction = true;
         
-        // Hint: Even though Deutsch-Jozsa algorithm operates on a wider class of functions
+        // Hint: even though Deutsch-Jozsa algorithm operates on a wider class of functions
         // than Bernstein-Vazirani (i.e. functions which can not be represented as a scalar product, such as f(x) = 1),
         // it can be expressed as running Bernstein-Vazirani algorithm
-        // and then post-processing the return value classically.
+        // and then post-processing the return value classically:
+        // the function is constant if and only if all elements of the returned array are false
+        let r = BV_Algorithm_Reference(N, Uf);
         
-        // ...
-
+        for (i in 0 .. N - 1) {
+            set isConstantFunction = isConstantFunction and r[i] == 0;
+        }
+        
         return isConstantFunction;
     }
     
@@ -280,34 +336,5 @@ namespace Quantum.Kata.DeutschJozsaAlgorithm {
         // DJ_Test appears in the list of unit tests for the solution; run it to verify your code.
 
         // ...
-    }
-    
-    
-    //////////////////////////////////////////////////////////////////
-    // Part IV. Come up with your own algorithm!
-    //////////////////////////////////////////////////////////////////
-    
-    // Task 4.1. Reconstruct the oracle from task 1.6
-    // Inputs:
-    //      1) the number of qubits in the input register N for the function f
-    //      2) a quantum operation which implements the oracle |x⟩|y⟩ -> |x⟩|y ⊕ f(x)⟩, where
-    //         x is an N-qubit input register, y is a 1-qubit answer register, and f is a Boolean function
-    // You are guaranteed that the function f implemented by the oracle can be represented as
-    // f(x₀, ..., xₙ₋₁) = Σᵢ (rᵢ xᵢ + (1 - rᵢ)(1 - xᵢ)) modulo 2 for some bit vector r = (r₀, ..., rₙ₋₁).
-    // You have implemented the oracle implementing this function in task 1.6.
-    // Output:
-    //      A bit vector r which generates the same oracle as the one you are given
-    operation Noname_Algorithm (N : Int, Uf : ((Qubit[], Qubit) => Unit)) : Int[] {
-        
-        // Hint: The bit vector r does not need to be the same as the one used by the oracle,
-        // it just needs to produce equivalent results.
-        
-        // Declare an Int array in which the result will be stored;
-        // the variable has to be mutable to allow updating it.
-        mutable r = new Int[N];
-        
-        // ...
-        return r;
-    }
-    
+    }    
 }
