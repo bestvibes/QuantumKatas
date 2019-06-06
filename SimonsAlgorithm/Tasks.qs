@@ -1,35 +1,9 @@
-
-
-
 namespace Quantum.Kata.SimonsAlgorithm {
     
     open Microsoft.Quantum.Diagnostics;
     open Microsoft.Quantum.Intrinsic;
     open Microsoft.Quantum.Canon;
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
     operation Oracle_CountBits (x : Qubit[], y : Qubit) : Unit
     is Adj {   
 
@@ -39,14 +13,7 @@ namespace Quantum.Kata.SimonsAlgorithm {
             CNOT(x[i], y);
         }
     }
-    
-    
-    
-    
-    
-    
-    
-    
+     
     operation Oracle_BitwiseRightShift (x : Qubit[], y : Qubit[]) : Unit
     is Adj {        
     
@@ -56,20 +23,9 @@ namespace Quantum.Kata.SimonsAlgorithm {
             CNOT(x[i - 1], y[i]);
         }
     }
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
     operation Oracle_OperatorOutput (x : Qubit[], y : Qubit, A : Int[]) : Unit
-    is Adj {
-        
-        
-        
+    is Adj {    
         EqualityFactI(Length(x), Length(A), "Arrays x and A should have the same length");
             
         let N = Length(x);
@@ -79,24 +35,10 @@ namespace Quantum.Kata.SimonsAlgorithm {
                 CNOT(x[i], y);
             }
         }
-    }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    } 
     
     operation Oracle_MultidimensionalOperatorOutput (x : Qubit[], y : Qubit[], A : Int[][]) : Unit
     is Adj {
-        
-        
-        
         EqualityFactI(Length(x), Length(A[0]), "Arrays x and A[0] should have the same length");
         EqualityFactI(Length(y), Length(A), "Arrays y and A should have the same length");
             
@@ -111,57 +53,19 @@ namespace Quantum.Kata.SimonsAlgorithm {
             }
         }
     }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+ 
     operation SA_StatePrep (query : Qubit[]) : Unit
     is Adj {        
         ApplyToEachA(H, query);
     }
-    
-    
-    
-    
-    
-    
-    
-    
-    //
-    
-    
-    
-    //
-    
-    
-    //
-    
-    
-    //
-    
-    
-    
+
     operation Simon_Algorithm (N : Int, Uf : ((Qubit[], Qubit[]) => Unit)) : Int[] {
-        
-        
         using ((x, y) = (Qubit[N], Qubit[N])) {
-            
             SA_StatePrep_Reference(x);
-            
-            
+
             Uf(x, y);
-            
-            
+
             ApplyToEach(H, x);
-            
-            
             
             mutable j = new Int[N];
             for (i in 0 .. N - 1) {
@@ -169,12 +73,10 @@ namespace Quantum.Kata.SimonsAlgorithm {
                     set j w/= i <- 1;
                 }
             }
-            
-            
+
             ResetAll(x);
             ResetAll(y);
             return j;
         }
     }
-    
 }
