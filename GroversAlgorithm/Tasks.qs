@@ -79,8 +79,4 @@ namespace Quantum.Kata.GroversAlgorithm {
             GroverIteration_Reference(register, phaseOracle);
         }
     }
-
-    operation E2E_GroversSearch_Test () : Unit {
- 
-    }
 }

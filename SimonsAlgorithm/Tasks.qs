@@ -6,7 +6,6 @@ namespace Quantum.Kata.SimonsAlgorithm {
 
     operation Oracle_CountBits (x : Qubit[], y : Qubit) : Unit
     is Adj {   
-
         let N = Length(x);
 
         for (i in 0 .. N - 1) {
@@ -16,7 +15,6 @@ namespace Quantum.Kata.SimonsAlgorithm {
      
     operation Oracle_BitwiseRightShift (x : Qubit[], y : Qubit[]) : Unit
     is Adj {        
-    
         let N = Length(x);
 
         for (i in 1 .. N - 1) {
@@ -27,9 +25,9 @@ namespace Quantum.Kata.SimonsAlgorithm {
     operation Oracle_OperatorOutput (x : Qubit[], y : Qubit, A : Int[]) : Unit
     is Adj {    
         EqualityFactI(Length(x), Length(A), "Arrays x and A should have the same length");
-            
+
         let N = Length(x);
-            
+
         for (i in 0 .. N - 1) {
             if (A[i] == 1) {
                 CNOT(x[i], y);
@@ -41,10 +39,10 @@ namespace Quantum.Kata.SimonsAlgorithm {
     is Adj {
         EqualityFactI(Length(x), Length(A[0]), "Arrays x and A[0] should have the same length");
         EqualityFactI(Length(y), Length(A), "Arrays y and A should have the same length");
-            
+
         let N1 = Length(y);
         let N2 = Length(x);
-            
+
         for (i in 0 .. N1 - 1) {
             for (j in 0 .. N2 - 1) {
                 if ((A[i])[j] == 1) {
@@ -53,7 +51,7 @@ namespace Quantum.Kata.SimonsAlgorithm {
             }
         }
     }
- 
+
     operation SA_StatePrep (query : Qubit[]) : Unit
     is Adj {        
         ApplyToEachA(H, query);

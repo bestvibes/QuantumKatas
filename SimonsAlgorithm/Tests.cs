@@ -116,7 +116,12 @@ namespace Q22
 
             for (int i = 0; i < len * 4; ++i)
             {
+                var watch = System.Diagnostics.Stopwatch.StartNew();
                 var (vector, uf) = cs_helper.Run(sim, len, instance.ExtendedTransformation).Result;
+                watch.Stop();
+                long ticks = watch.ElapsedTicks;
+                Console.WriteLine("n: " + len + " RunTime: " + ticks);
+
                 Assert.Equal(1, sim.GetOperationCount(uf));
                 saver.Add(vector);
             }

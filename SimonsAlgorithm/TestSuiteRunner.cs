@@ -10,6 +10,8 @@
 namespace Quantum.Kata.SimonsAlgorithm
 {
     using System.Diagnostics;
+    using System;
+    using System.Threading;
 
     using Microsoft.Quantum.Simulation.XUnit;
 
@@ -34,9 +36,14 @@ namespace Quantum.Kata.SimonsAlgorithm
             using (var sim = new OracleCounterSimulator())
             {
                 // OnLog defines action(s) performed when Q# test calls function Message
-                sim.OnLog += msg => { output.WriteLine(msg); };
-                sim.OnLog += msg => { Debug.WriteLine(msg); };
+                sim.OnLog += (msg) => { output.WriteLine(msg); };
+                sim.OnLog += (msg) => { Debug.WriteLine(msg); };
+
+                var watch = System.Diagnostics.Stopwatch.StartNew();
                 op.TestOperationRunner(sim);
+                watch.Stop();
+                long ticks = watch.ElapsedTicks;
+                Console.WriteLine("Name: " + op.className + " RunTime: " + ticks);
             }
         }
     }
