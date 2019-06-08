@@ -55,8 +55,8 @@ namespace Quantum.Kata.GroversAlgorithm {
     operation ConditionalPhaseFlip (register : Qubit[]) : Unit
     is Adj {
         body (...) {
-            let allZerosOracle = Oracle_ArbitraryPattern_Reference(_, _, new Bool[Length(register)]);
-            let flipOracle = OracleConverter_Reference(allZerosOracle);
+            let allZerosOracle = Oracle_ArbitraryPattern(_, _, new Bool[Length(register)]);
+            let flipOracle = OracleConverter(allZerosOracle);
             flipOracle(register);
         }
         adjoint self;
@@ -65,18 +65,18 @@ namespace Quantum.Kata.GroversAlgorithm {
     operation GroverIteration (register : Qubit[], oracle : (Qubit[] => Unit is Adj)) : Unit
     is Adj {
         oracle(register);
-        HadamardTransform_Reference(register);
-        ConditionalPhaseFlip_Reference(register);
-        HadamardTransform_Reference(register);
+        HadamardTransform(register);
+        ConditionalPhaseFlip(register);
+        HadamardTransform(register);
     }
 
     operation GroversSearch (register : Qubit[], oracle : ((Qubit[], Qubit) => Unit is Adj), iterations : Int) : Unit {
         
-        let phaseOracle = OracleConverter_Reference(oracle);
-        HadamardTransform_Reference(register);
+        let phaseOracle = OracleConverter(oracle);
+        HadamardTransform(register);
             
         for (i in 1 .. iterations) {
-            GroverIteration_Reference(register, phaseOracle);
+            GroverIteration(register, phaseOracle);
         }
     }
 }

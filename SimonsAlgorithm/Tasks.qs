@@ -59,7 +59,7 @@ namespace Quantum.Kata.SimonsAlgorithm {
 
     operation Simon_Algorithm (N : Int, Uf : ((Qubit[], Qubit[]) => Unit)) : Int[] {
         using ((x, y) = (Qubit[N], Qubit[N])) {
-            SA_StatePrep_Reference(x);
+            SA_StatePrep(x);
 
             Uf(x, y);
 
